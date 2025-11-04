@@ -1,17 +1,17 @@
 <div class="auth-page">
-  <mat-card class="auth-card" appearance="outlined">
+  <mat-card class="auth-card">
     <mat-card-header class="header">
       <mat-card-title class="title" >Sign in</mat-card-title>
       <mat-card-subtitle>Access your account</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content class="form-content">
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" autocomplete="off">
-        <mat-form-field appearance="outline" class="w-100 form-field">
+        <mat-form-field appearance="outline" class="form-field">
           <mat-label>Username</mat-label>
           <input matInput type="text" formControlName="username" placeholder="Enter your username">
          
           <mat-error *ngIf="loginForm.get('username')?.errors?.['required'] && loginForm.get('username')?.touched">Username is required.</mat-error>
-          <mat-error *ngIf="loginForm.get('username')?.errors?.['minlength'] && loginForm.get('username')?.touched">Username must be at least 3 characters.</mat-error>
+          <mat-error *ngIf="loginForm.get('username')?.errors?.['minlength'] && loginForm.get('username')?.touched">Username must be at least 4 characters.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-100 form-field">
@@ -27,7 +27,7 @@
           <span>{{ errorMessage }}</span>
         </div>
 
-        <button mat-raised-button color="primary" type="submit" class="w-100 login-button" [disabled]="loginForm.invalid">Login</button>
+        <button mat-raised-button color="primary" type="submit" class="login-button" [disabled]="loginForm.invalid">Login</button>
       </form>
     </mat-card-content>
   </mat-card>

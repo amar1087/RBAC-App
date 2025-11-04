@@ -10,9 +10,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule,MatTableDataSource} from '@angular/material/table';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { UserService, User } from '../../services/user.service';
 import { RoleService, Role } from '../../services/role.service';
+import { ErrorHandlerService } from '../../services/error-handler.service';
 
 @Component({
   selector: 'app-users',
@@ -28,7 +30,8 @@ import { RoleService, Role } from '../../services/role.service';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatTableModule
+    MatTableModule,
+    MatSnackBarModule
   ],
   templateUrl: './users.html',
   styleUrls: ['./users.scss'],
@@ -38,13 +41,18 @@ export class Users {
   private userService = inject(UserService);
   private roleService = inject(RoleService);
   private platformId = inject(PLATFORM_ID);
-
+  private snackBar = inject(MatSnackBar);
+  private errorHandler = inject(ErrorHandlerService);
   showForm = false;
+  filteredUsers: MatTableDataSource<User> = new MatTableDataSource<User>();
   users: User[] = [];
   roles: String[] = [];
   displayedColumns: string[] = ['firstName', 'lastName', 'email', 'phone', 'role', 'actions'];
   selectedUser: User | null = null;
   currentUser: any;
+
+  searchFilter = new FormControl('');
+  roleFilter = new FormControl('');
 
   userForm = new FormGroup({
     username: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] }),
@@ -62,13 +70,27 @@ export class Users {
     this.loadUsers();
     this.loadCurrentUser();
     this.loadRoles();
+
+    // Subscribe to filter changes
+    this.searchFilter.valueChanges.subscribe(() => {
+      this.applyFilter();
+    });
+    
+    this.roleFilter.valueChanges.subscribe(() => {
+      this.applyFilter();
+    });
   }
 
   loadCurrentUser(): void {
     if (isPlatformBrowser(this.platformId)) {
-      const userStr = localStorage.getItem('currentUser');
-      if (userStr) {
-        this.currentUser = JSON.parse(userStr);
+      try {
+        const userStr = localStorage.getItem('currentUser');
+        if (userStr) {
+          this.currentUser = JSON.parse(userStr);
+        }
+      } catch (error) {
+        this.errorHandler.showErrorMessage(error, 'Error getting current user');
+        this.currentUser = null;
       }
     }
   }
@@ -89,13 +111,55 @@ export class Users {
     return this.roleService.hasPermission(this.currentUser?.role, 'delete');
   }
 
+  applyFilter(): void {
+    let filteredData = [...this.users];
+
+    // Apply search filter
+    const searchValue = this.searchFilter.value?.toLowerCase().trim() || '';
+    if (searchValue) {
+      filteredData = filteredData.filter(user => 
+        user.firstName.toLowerCase().includes(searchValue) ||
+        user.lastName.toLowerCase().includes(searchValue) ||
+        user.email.toLowerCase().includes(searchValue) ||
+        user.phone.includes(searchValue) ||
+        user.username?.toLowerCase().includes(searchValue)
+      );
+    }
+
+    // Apply role filter
+    const roleValue = this.roleFilter.value;
+    if (roleValue) {
+      filteredData = filteredData.filter(user => user.role === roleValue);
+    }
+
+    // Update the filteredUsers data source
+    this.filteredUsers.data = filteredData;
+  }
+
+
+  clearFilters(): void {
+    this.searchFilter.setValue('');
+    this.roleFilter.setValue('');
+  }
 
   loadUsers(): void {
-    this.users = this.userService.getUsers();
+    try {
+      this.users = this.userService.getUsers();
+      this.filteredUsers.data = this.users; // Initialize filtered users
+    } catch (error) {
+      this.errorHandler.showErrorMessage(error, 'Error loading users');
+      this.users = [];
+      this.filteredUsers.data = [];
+    }
   }
 
   loadRoles(): void {
+    try{
     this.roles = this.roleService.getRoles().map(role => role.name);
+    } catch (error) {
+      this.errorHandler.showErrorMessage(error, 'Error loading roles');
+      throw error;
+    }
   }
 
   showAddUserForm(): void {
@@ -106,6 +170,7 @@ export class Users {
 
   onSave(): void {
     if (this.userForm.valid) {
+      try{
       const formValue = this.userForm.value;
       this.userService.addUser({
         username: formValue.username!,
@@ -118,28 +183,44 @@ export class Users {
         dateOfBirth: formValue.dateOfBirth ?? null
       });
       console.log('User saved:', this.userForm.value);
-      alert('User saved successfully!');
+     // alert('User saved successfully!');
+      this.snackBar.open('User saved successfully!', 'Close', { duration: 3000, verticalPosition: 'top' });
       this.loadUsers(); // Reload users from service
+      this.applyFilter(); // Reapply filters after loading
       this.showForm = false;
       this.resetForm();
+    } catch (error) {
+      this.errorHandler.showErrorMessage(error, 'Error saving user data');
+      throw error;
+    }
     } else {
       this.userForm.markAllAsTouched();
-      alert('Please fill all required fields correctly.');
+      alert('Please fill all required fields.');
     }
   }
 
   onUpdate(): void {
     if (this.userForm.valid && this.selectedUser) {
+      try{
       this.userService.updateUser(this.selectedUser.id, this.userForm.value);
       console.log('User updated:', this.userForm.value);
-      alert('User updated successfully!');
+      this.snackBar.open('User updated successfully!', 'Close', { duration: 3000,verticalPosition: 'top' });
+     // alert('User updated successfully!');
       this.loadUsers(); // Reload users from service
+      this.applyFilter(); // Reapply filters after loading
       this.showForm = false;
       this.resetForm();
       this.selectedUser = null;
+      }
+      catch (error) {
+        this.errorHandler.showErrorMessage(error, 'Error updating user data');
+        throw error;
+      }
     } else {
       this.userForm.markAllAsTouched();
-      alert('Please fill all required fields correctly.');
+      //alert('Please fill all required fields correctly.');
+      this.snackBar.open('Please fill all required fields.', 'Close', { duration: 3000, verticalPosition: 'top' });
+
     }
   }
 
@@ -162,8 +243,10 @@ export class Users {
     if (confirm('Are you sure you want to delete this user?')) {
       this.userService.deleteUser(user.id);
       console.log('User deleted:', user);
-      alert('User deleted successfully!');
+      //alert('User deleted successfully!');
+      this.snackBar.open('User deleted successfully!', 'Close', { duration: 3000, verticalPosition: 'top' });
       this.loadUsers(); // Reload users from service
+      this.applyFilter(); // Reapply filters after loading
     }
   }
 

@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { RoleService, Role } from '../../services/role.service';
 
 @Component({
@@ -25,7 +26,8 @@ import { RoleService, Role } from '../../services/role.service';
     MatButtonModule,
     MatTableModule,
     MatChipsModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatSnackBarModule
   ],
   templateUrl: './roles.html',
   styleUrls: ['./roles.scss'],
@@ -34,7 +36,7 @@ export class Roles {
   private roleService = inject(RoleService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
-
+  private snackBar = inject(MatSnackBar);
   showForm = false;
   roles: Role[] = [];
   displayedColumns: string[] = ['name', 'description', 'permissions', 'actions'];
@@ -104,13 +106,15 @@ export class Roles {
         permissions: formValue.permissions || []
       });
       console.log('Role saved:', this.roleForm.value);
-      alert('Role saved successfully!');
+     // alert('Role saved successfully!');
+      this.snackBar.open('Role saved successfully!', 'Close', { duration: 3000, verticalPosition: 'top' });
       this.loadRoles();
       this.showForm = false;
       this.resetForm();
     } else {
       this.roleForm.markAllAsTouched();
-      alert('Please fill all required fields correctly.');
+     // alert('Please fill all required fields correctly.');
+     this.snackBar.open('Please fill all required fields correctly.', 'Close', { duration: 3000, verticalPosition: 'top' });
     }
   }
 
@@ -123,14 +127,15 @@ export class Roles {
         permissions: formValue.permissions || []
       });
       console.log('Role updated:', this.roleForm.value);
-      alert('Role updated successfully!');
+      this.snackBar.open('Role updated successfully!', 'Close', { duration: 3000, verticalPosition: 'top' });
+
       this.loadRoles();
       this.showForm = false;
       this.resetForm();
       this.selectedRole = null;
     } else {
       this.roleForm.markAllAsTouched();
-      alert('Please fill all required fields correctly.');
+      this.snackBar.open('Please fill all required fields correctly.', 'Close', { duration: 3000, verticalPosition: 'top' });
     }
   }
 
@@ -148,7 +153,7 @@ export class Roles {
     if (confirm('Are you sure you want to delete this role?')) {
       this.roleService.deleteRole(role.id);
       console.log('Role deleted:', role);
-      alert('Role deleted successfully!');
+      this.snackBar.open('Role deleted successfully!', 'Close', { duration: 3000, verticalPosition: 'top' });
       this.loadRoles();
     }
   }

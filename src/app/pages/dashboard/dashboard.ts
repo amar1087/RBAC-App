@@ -18,7 +18,7 @@ export class Dashboard {
   private roleService = inject(RoleService);
   private platformId = inject(PLATFORM_ID);
 
-  hasPermission = true; // Dummy permission flag
+  hasPermission = true; // Default permission flag
   currentUser: any;
 
   ngOnInit(): void {
@@ -49,13 +49,6 @@ export class Dashboard {
     return this.currentUser?.role === 'Admin';
   }
 
-  canManageUsers(): boolean {
-    return this.roleService.hasPermission(this.currentUser?.role, 'manage_users');
-  }
-
-  canManageRoles(): boolean {
-    return this.roleService.hasPermission(this.currentUser?.role, 'manage_roles');
-  }
 
   canRead(): boolean {
     return this.roleService.hasPermission(this.currentUser?.role, 'read');

@@ -15,14 +15,43 @@
   <!-- Users List -->
   <div *ngIf="!showForm" class="users-list">
     <mat-card appearance="outlined">
+      <mat-card-header class="filter-header">
+        <div class="filter-section">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Search Users</mat-label>
+            <input matInput [formControl]="searchFilter" placeholder="Search by name, email, phone...">
+            <mat-icon matPrefix>search</mat-icon>
+            <button mat-icon-button matSuffix (click)="searchFilter.setValue('')" *ngIf="searchFilter.value" type="button">
+              <mat-icon>clear</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filter by Role</mat-label>
+            <mat-select [formControl]="roleFilter">
+              <mat-option value="">All Roles</mat-option>
+              <mat-option *ngFor="let role of roles" [value]="role">{{ role }}</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>filter_list</mat-icon>
+          </mat-form-field>
+
+          <button mat-stroked-button (click)="clearFilters()" class="clear-filter-btn" *ngIf="searchFilter.value || roleFilter.value">
+            <mat-icon>clear_all</mat-icon>
+            Clear Filters
+          </button>
+        </div>
+      </mat-card-header>
+
       <mat-card-content>
-        <div *ngIf="users.length === 0" class="empty-state">
+        <div *ngIf="filteredUsers.data.length === 0" class="empty-state">
           <mat-icon class="empty-icon">people_outline</mat-icon>
           <h3>No Users Found</h3>
-          <p>Get started by adding your first user</p>
+          <p *ngIf="users.length === 0">Get started by adding your first user</p>
+          <p *ngIf="users.length > 0">No users match your filter criteria</p>
+
         </div>
 
-        <table mat-table [dataSource]="users" *ngIf="users.length > 0" class="users-table">
+        <table mat-table [dataSource]="filteredUsers" *ngIf="filteredUsers.data.length > 0" class="users-table">
           <ng-container matColumnDef="firstName">
             <th mat-header-cell *matHeaderCellDef>First Name</th>
             <td mat-cell *matCellDef="let user">{{ user.firstName }}</td>
