@@ -48,11 +48,6 @@ export class RoleService {
     return [];
   }
 
-  getRoleById(id: number): Role | undefined {
-    const roles = this.getRoles();
-    return roles.find(role => role.id === id);
-  }
-
   addRole(role: Omit<Role, 'id'>): Role {
     if (!isPlatformBrowser(this.platformId)) {
       throw new Error('Cannot add role on server side');
@@ -95,11 +90,7 @@ export class RoleService {
     return false;
   }
 
-  clearAllRoles(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    localStorage.removeItem(this.rolesKey);
-  }
-
+ 
   getRoleByName(name: string): Role | undefined {
     const roles = this.getRoles();
     return roles.find(role => role.name === name);
