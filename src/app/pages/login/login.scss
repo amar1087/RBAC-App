@@ -1,0 +1,58 @@
+.header {
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+ 
+}
+.form-content {
+  
+  display: flex;
+  flex-direction: row ;
+  justify-content: center;
+  align-items: center;
+ 
+}
+
+.login-button {
+  margin: 10px 10px 10px 10px !important;
+  position: absolute;
+  
+}
+
+.form-field {
+    width: 80% !important;
+    
+}
+.login-button{
+width: 20% !important;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 70%;
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f44336;
+  background-color: #ffebee;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
